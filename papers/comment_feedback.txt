@@ -10,7 +10,7 @@ Please do the following:
 
 Here are the issues:
 
----
+===
 
 ### 1. Abstract
 The abstract is too short. It needs to be expanded to clearly describe:
@@ -22,7 +22,7 @@ The abstract is too short. It needs to be expanded to clearly describe:
 
 Please rewrite it into a well-structured, professional abstract suitable for a top-field journal.
 
----
+===
 
 ### 2. Introduction – Literature Review Style
 Currently, multiple papers are grouped together in single parentheses when introducing the literature. This should be avoided.
@@ -31,7 +31,7 @@ Please:
 - Rewrite the literature review so that contributions are introduced more clearly and individually.
 - Improve logical transitions across research streams.
 
----
+===
 
 ### 3. Introduction – Contribution Paragraph
 Add a second-to-last paragraph in the introduction that clearly states:
@@ -41,7 +41,7 @@ Add a second-to-last paragraph in the introduction that clearly states:
 
 Make it concise but strong.
 
----
+===
 
 ### 4. Terminology: Risk Heterogeneity
 We currently use the phrase “two types of agents,” which is imprecise.
@@ -52,7 +52,7 @@ Please:
 - Suggest academically appropriate terminology,
 - Revise the relevant parts accordingly.
 
----
+===
 
 ### 5. Model Setup – Group Indexing
 Instead of using a classification function \(\tau(i)\), we may define:
@@ -69,7 +69,7 @@ Please:
 - Revise the model setup accordingly if appropriate,
 - Ensure notation consistency throughout.
 
----
+===
 
 ### 6. Section 2.2 – Problem Formulation
 The problem description is too vague.
@@ -79,7 +79,7 @@ Please:
 - Ensure that the general optimization problem appears clearly at the end of the section,
 - Improve logical structure.
 
----
+===
 
 ### 7. Mean–Variance Utility Justification
 Using mean–variance utility may be criticized by referees.
@@ -90,7 +90,7 @@ Please:
 - Discuss possible extensions to expected utility or risk measures,
 - Argue why the qualitative results would likely remain robust.
 
----
+===
 
 ### 8. Appendix References
 Replace vague references such as “see Appendix B” with precise statements like:
@@ -98,7 +98,7 @@ Replace vague references such as “see Appendix B” with precise statements li
 
 Please revise all appendix references accordingly.
 
----
+===
 
 ### 9. Section on Correlated Risks
 The section on correlated risks does not generate substantial additional insight.
@@ -108,19 +108,19 @@ Please:
 - Remove it as a standalone section,
 - Ensure structural coherence.
 
----
+===
 
 ### 10. Section 6.2 Structure
 Remove artificial-looking subheadings such as “Mean component” and “Variance component.”
 Rewrite the section into a more natural and integrated discussion.
 
----
+===
 
 ### 11. Proposition Tagging
 Remove unnecessary special tags such as \(\tag{\star}\).
 Ensure consistent equation and proposition numbering throughout the paper.
 
----
+===
 
 ### 12. Corollary 6.2
 Clarify explicitly:
@@ -128,7 +128,7 @@ Corollary 6.2 is a corollary of which proposition or theorem?
 
 Revise the logical exposition accordingly.
 
----
+===
 
 ### 13. Numerical Section
 The numerical section requires graphical redesign.
@@ -138,7 +138,7 @@ Please:
 - Explain how to better highlight economic insights,
 - Ensure consistency in figure size and layout.
 
----
+===
 
 ### 14. Conclusion
 The conclusion is too long.
@@ -148,7 +148,7 @@ Please:
 - Retain only strong and positive conclusions,
 - Emphasize the paper’s key contributions and insights.
 
----
+===
 
 When responding:
 - Work systematically.
