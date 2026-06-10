@@ -531,6 +531,36 @@ def _match_patterns(text: str, patterns: List, pattern_name: str, category: str)
     return matches
 
 
+def detect_structured_abstract(text: str) -> List[PatternMatch]:
+    """Detect structured abstracts with bold sub-headings — a common AI writing pattern.
+
+    Patterns like: \\textbf{Background:} \\textbf{Methods:} \\textbf{Results:} \\textbf{Conclusions:}
+    These are increasingly common in LLM-generated papers and should be flagged.
+    """
+    patterns = [
+        (r'\\textbf\{(?:Background|Methods?|Results?|Conclusions?|Findings?|Objective|Design|Setting|Participants?|Intervention|Outcome|Limitations?|Implications?|Contribution|Purpose|Approach|Framework|Originality|Value):?\}', 0.7),
+        (r'\\textbf\{(?:研究背景|研究方法|研究结果|研究结论|背景|方法|结果|结论|发现|目标|设计|贡献|创新|意义):?\}', 0.7),
+    ]
+    result = []
+    lines = text.split('\n')
+    for pat, sev in patterns:
+        for i, line in enumerate(lines, 1):
+            for m in re.finditer(pat, line):
+                result.append(PatternMatch(
+                    "结构化摘要小标题",
+                    "style",
+                    sev,
+                    m.group(),
+                    i,
+                    "摘要中使用加粗小标题(\\textbf{Background:}等)是AI写作的典型特征。摘要应为自然流畅的段落，删除所有加粗小标题。"
+                ))
+    # Escalate severity if 2+ such headings found (likely fully AI-generated abstract)
+    if len(result) >= 2:
+        for r in result:
+            r.severity = min(r.severity + 0.2, 0.95)
+    return result
+
+
 def analyze_ai_patterns(text: str) -> PatternReport:
     """Run all AI pattern detectors on the text and return a report."""
     all_matches = []
@@ -553,6 +583,7 @@ def analyze_ai_patterns(text: str) -> PatternReport:
     # Style patterns
     all_matches.extend(detect_em_dashes(text))
     all_matches.extend(detect_title_case_headings(text))
+    all_matches.extend(detect_structured_abstract(text))
 
     # Communication patterns
     all_matches.extend(detect_chatbot_artifacts(text))
