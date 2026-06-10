@@ -1,10 +1,16 @@
 # Paper Review Iterative System — Configuration
 # Copy this to config.yaml and fill in your settings
 
-# Anthropic API key (or set ANTHROPIC_API_KEY environment variable)
+# === LLM Provider ===
+# Options: "anthropic", "deepseek"
+provider: "anthropic"
+
+# API Key (or set environment variable: ANTHROPIC_API_KEY / DEEPSEEK_API_KEY)
 api_key: ""
 
-# Default model for review and revision
+# Default model
+# Anthropic: claude-sonnet-4-6, claude-opus-4-8, claude-haiku-4-5
+# DeepSeek: deepseek-v4-pro, deepseek-v4-flash
 model: "claude-sonnet-4-6"
 
 # Review dimensions to enable by default
@@ -30,7 +36,7 @@ output_dir: "output"
 
 # LaTeX settings
 latex:
-  compiler: "pdflatex"     # or "xelatex", "lualatex"
-  auto_compile: true        # compile PDF after each revision
-  serve_preview: true       # serve PDF via HTTP for live preview
-  preview_port: 8765        # port for live preview server
+  compiler: "pdflatex"
+  auto_compile: false          # disabled by default (needs texlive)
+  serve_preview: false
+  preview_port: 8765

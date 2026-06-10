@@ -23,12 +23,8 @@ def load_config(config_path: str = "config.yaml") -> dict:
         with open(config_path, "r", encoding="utf-8") as f:
             config = yaml.safe_load(f) or {}
 
-    # API key from env var takes precedence
-    if os.environ.get("ANTHROPIC_API_KEY"):
-        config["api_key"] = os.environ["ANTHROPIC_API_KEY"]
-
     # Set defaults
-    config.setdefault("model", "claude-sonnet-4-6")
+    config.setdefault("provider", "anthropic")
     config.setdefault("max_rounds", 5)
     config.setdefault("convergence_threshold", 0.3)
     config.setdefault("parallel_reviews", True)
@@ -36,11 +32,44 @@ def load_config(config_path: str = "config.yaml") -> dict:
     config.setdefault("dimensions", ["format", "language", "ai_free", "math", "logic", "significance"])
     config.setdefault("latex", {})
     config["latex"].setdefault("compiler", "pdflatex")
-    config["latex"].setdefault("auto_compile", True)
-    config["latex"].setdefault("serve_preview", True)
+    config["latex"].setdefault("auto_compile", False)
+    config["latex"].setdefault("serve_preview", False)
     config["latex"].setdefault("preview_port", 8765)
 
+    # API key: env var takes precedence
+    provider = config.get("provider", "anthropic")
+    if provider == "deepseek":
+        config.setdefault("model", "deepseek-v4-pro")
+        env_key = os.environ.get("DEEPSEEK_API_KEY")
+    else:
+        config.setdefault("model", "claude-sonnet-4-6")
+        env_key = os.environ.get("ANTHROPIC_API_KEY")
+
+    if env_key:
+        config["api_key"] = env_key
+
     return config
+
+
+def create_llm_client(config: dict):
+    """Create an LLM client based on provider config.
+
+    For DeepSeek, uses Anthropic SDK with custom base_url
+    (DeepSeek supports Anthropic-compatible API).
+    For Anthropic, uses standard Anthropic SDK.
+    """
+    from anthropic import Anthropic
+
+    provider = config.get("provider", "anthropic")
+    api_key = config.get("api_key", "")
+
+    if provider == "deepseek":
+        return Anthropic(
+            api_key=api_key,
+            base_url="https://api.deepseek.com/anthropic",
+        )
+    else:
+        return Anthropic(api_key=api_key)
 
 
 def print_banner():
