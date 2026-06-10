@@ -1,0 +1,17 @@
+__pycache__/
+*.pyc
+.env
+config.yaml
+output/
+*.aux
+*.log
+*.out
+*.toc
+*.synctex.gz
+*.fdb_latexmk
+*.fls
+*.bbl
+*.blg
+*.pdf
+.venv/
+.DS_Store

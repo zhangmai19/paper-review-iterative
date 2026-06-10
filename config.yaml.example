@@ -1,0 +1,36 @@
+# Paper Review Iterative System — Configuration
+# Copy this to config.yaml and fill in your settings
+
+# Anthropic API key (or set ANTHROPIC_API_KEY environment variable)
+api_key: ""
+
+# Default model for review and revision
+model: "claude-sonnet-4-6"
+
+# Review dimensions to enable by default
+dimensions:
+  - format        # 格式
+  - language      # 用语规范
+  - ai_free       # 无AI特点
+  - math          # 数学推导
+  - logic         # 行文逻辑
+  - significance  # 研究意义
+
+# Maximum review-revise rounds
+max_rounds: 5
+
+# Convergence threshold: stop when average review score < this value
+convergence_threshold: 0.3
+
+# Run review dimensions in parallel
+parallel_reviews: true
+
+# Output directory for iteration artifacts
+output_dir: "output"
+
+# LaTeX settings
+latex:
+  compiler: "pdflatex"     # or "xelatex", "lualatex"
+  auto_compile: true        # compile PDF after each revision
+  serve_preview: true       # serve PDF via HTTP for live preview
+  preview_port: 8765        # port for live preview server
