@@ -29,7 +29,7 @@ class Orchestrator:
 
     def __init__(
         self,
-        client: Anthropic,
+        llm,                  # (provider_type, client) tuple
         model: str = "claude-sonnet-4-6",
         max_rounds: int = 5,
         convergence_threshold: float = 0.3,
@@ -40,7 +40,7 @@ class Orchestrator:
         human_feedback_callback: Optional[Callable[[int, Dict], Optional[str]]] = None,
         post_revision_callback: Optional[Callable[[str, int], None]] = None,
     ):
-        self.client = client
+        self.llm = llm
         self.model = model
         self.max_rounds = max_rounds
         self.convergence_threshold = convergence_threshold
@@ -51,8 +51,8 @@ class Orchestrator:
         self.human_feedback_callback = human_feedback_callback
         self.post_revision_callback = post_revision_callback
 
-        self.reviewer = Reviewer(client, model)
-        self.reviser = Reviser(client, model)
+        self.reviewer = Reviewer(llm, model)
+        self.reviser = Reviser(llm, model)
 
         # Tracking
         self.rounds: List[Dict] = []
@@ -110,7 +110,7 @@ class Orchestrator:
                 scores["ai_free"] = 0.4 * local_score + 0.6 * api_score
                 review_results["ai_free"]["local_pattern_score"] = local_score
 
-            avg = print_review_summary(scores, round_num)
+            avg = print_review_summary(scores, review_results, round_num)
 
             # Aggregate feedback
             feedback = self.reviewer.aggregate_feedback(review_results)

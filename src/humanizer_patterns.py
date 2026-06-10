@@ -402,8 +402,8 @@ def detect_chatbot_artifacts(text: str) -> List[PatternMatch]:
         (r'(?:Great|Excellent|Good|Interesting|Fascinating) question', 0.8),
         (r"You(?:'re| are) (?:absolutely|completely|totally) right", 0.8),
         (r'I (?:completely|fully|totally|absolutely) agree', 0.7),
-        (r'(?:That|This)(?:'s| is) (?:an? )?(?:excellent|great|wonderful|fantastic|interesting) (?:question|point|observation|perspective)', 0.8),
-        (r'It(?:'s| is) (?:important|crucial|essential|vital|worthwhile) to (?:note|mention|remember|consider|understand)', 0.6),
+        (r"(?:That|This)(?:'s| is) (?:an? )?(?:excellent|great|wonderful|fantastic|interesting) (?:question|point|observation|perspective)", 0.8),
+        (r"It(?:'s| is) (?:important|crucial|essential|vital|worthwhile) to (?:note|mention|remember|consider|understand)", 0.6),
         (r'^(?:Sure!|Of course!|Absolutely!|Certainly!|Great!|Excellent!)', 0.8),
         (r'^(?:Hi|Hello|Hey|Greetings|Dear)\b.{0,50}(?:I|we|let me|allow me)', 0.5),
     ]

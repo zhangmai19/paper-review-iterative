@@ -1,5 +1,5 @@
 """
-Reviewer Module — runs multi-dimension academic reviews using Claude API.
+Reviewer Module — runs multi-dimension academic reviews using LLM API.
 
 Supports parallel and sequential execution across 6 review dimensions:
 format, language, ai_free, math, logic, significance.
@@ -10,8 +10,6 @@ import re
 import concurrent.futures
 from typing import Dict, Optional, List
 
-from anthropic import Anthropic
-
 from .prompts.format_review import FORMAT_REVIEW_PROMPT
 from .prompts.language_review import LANGUAGE_REVIEW_PROMPT
 from .prompts.ai_detection_review import AI_FREE_REVIEW_PROMPT
@@ -19,7 +17,7 @@ from .prompts.math_review import MATH_REVIEW_PROMPT
 from .prompts.logic_review import LOGIC_REVIEW_PROMPT
 from .prompts.significance_review import SIGNIFICANCE_REVIEW_PROMPT
 from .humanizer_patterns import analyze_ai_patterns
-from .utils import console
+from .utils import console, llm_chat
 
 
 REVIEW_PROMPTS = {
@@ -34,7 +32,6 @@ REVIEW_PROMPTS = {
 
 def _extract_json(text: str) -> Optional[dict]:
     """Extract JSON from LLM response, handling markdown code blocks."""
-    # Try ```json block first
     json_match = re.search(r'```(?:json)?\s*\n?(.*?)\n?```', text, re.DOTALL)
     if json_match:
         try:
@@ -42,13 +39,11 @@ def _extract_json(text: str) -> Optional[dict]:
         except json.JSONDecodeError:
             pass
 
-    # Try plain JSON parse
     try:
         return json.loads(text)
     except json.JSONDecodeError:
         pass
 
-    # Try to find JSON object in text
     json_match = re.search(r'\{.*\}', text, re.DOTALL)
     if json_match:
         try:
@@ -59,33 +54,41 @@ def _extract_json(text: str) -> Optional[dict]:
     return None
 
 
+def _clamp_score(score: float) -> float:
+    """Normalize score to 0.0-1.0 range."""
+    if score <= 0:
+        return 0.0
+    if score > 1.0:
+        if score > 50:
+            return min(1.0, score / 100.0)
+        elif score > 5:
+            return min(1.0, score / 10.0)
+        else:
+            return min(1.0, score / 5.0)
+    return score
+
+
 def _run_single_review(
-    client: Anthropic,
+    llm,
     model: str,
     dim_key: str,
     paper_content: str,
 ) -> Dict:
     """Run a single review dimension."""
     dim_name, prompt_template = REVIEW_PROMPTS[dim_key]
-    prompt = prompt_template.format(paper_content=paper_content)
+    prompt = prompt_template.replace("{paper_content}", paper_content)
+
+    SYSTEM = "你是一位严格的学术审稿人。请以批判性的眼光仔细审查论文，输出结构化的JSON审查报告。不要客气，要指出真正的问题。"
 
     try:
-        response = client.messages.create(
-            model=model,
-            max_tokens=4096,
-            temperature=0.3,  # low temp for consistent, critical reviews
-            system="你是一位严格的学术审稿人。请以批判性的眼光仔细审查论文，输出结构化的JSON审查报告。不要客气，要指出真正的问题。",
-            messages=[{"role": "user", "content": prompt}],
-        )
-
-        result_text = response.content[0].text
+        result_text = llm_chat(llm, model, SYSTEM, prompt, max_tokens=8192, temperature=0.3)
         parsed = _extract_json(result_text)
 
         if parsed:
             return {
                 "dimension": dim_key,
                 "name": dim_name,
-                "score": float(parsed.get("score", 0.5)),
+                "score": _clamp_score(float(parsed.get("score", 0.5))),
                 "severity": parsed.get("severity", "medium"),
                 "key_issues": parsed.get("key_issues", []),
                 "raw_response": result_text,
@@ -93,11 +96,10 @@ def _run_single_review(
                 "error": None,
             }
         else:
-            # If JSON parsing failed, treat the whole response as detailed feedback
             return {
                 "dimension": dim_key,
                 "name": dim_name,
-                "score": 0.5,  # default score
+                "score": 0.5,
                 "severity": "medium",
                 "key_issues": ["(JSON解析失败，请查看详细反馈)"],
                 "raw_response": result_text,
@@ -119,10 +121,10 @@ def _run_single_review(
 
 
 class Reviewer:
-    """Multi-dimension academic paper reviewer using Claude API."""
+    """Multi-dimension academic paper reviewer using LLM API."""
 
-    def __init__(self, client: Anthropic, model: str = "claude-sonnet-4-6"):
-        self.client = client
+    def __init__(self, llm, model: str = "claude-sonnet-4-6"):
+        self.llm = llm
         self.model = model
 
     def review(
@@ -131,23 +133,11 @@ class Reviewer:
         dimensions: Optional[List[str]] = None,
         parallel: bool = True,
     ) -> Dict:
-        """
-        Run reviews across specified dimensions.
-
-        Args:
-            paper_content: The paper text to review.
-            dimensions: List of dimension keys. Default: all 6.
-            parallel: Run reviews in parallel.
-
-        Returns:
-            Dict with dimension results and aggregate scores.
-        """
+        """Run reviews across specified dimensions."""
         if dimensions is None:
             dimensions = list(REVIEW_PROMPTS.keys())
 
-        # Filter to valid dimensions
         dimensions = [d for d in dimensions if d in REVIEW_PROMPTS]
-
         if not dimensions:
             raise ValueError("No valid review dimensions specified")
 
@@ -159,7 +149,7 @@ class Reviewer:
 
         results = {}
 
-        # Also run local AI pattern detection (no API call needed)
+        # Run local AI pattern detection
         if "ai_free" in dimensions:
             console.print("  [cyan]🔍[/cyan] 运行本地AI特征检测 (local AI pattern scan)...")
             pattern_report = analyze_ai_patterns(paper_content)
@@ -171,7 +161,7 @@ class Reviewer:
             with concurrent.futures.ThreadPoolExecutor(max_workers=len(dimensions)) as executor:
                 futures = {
                     executor.submit(
-                        _run_single_review, self.client, self.model, dim, paper_content
+                        _run_single_review, self.llm, self.model, dim, paper_content
                     ): dim
                     for dim in dimensions
                 }
@@ -182,7 +172,9 @@ class Reviewer:
                         result = future.result()
                         results[dim] = result
                         score = result.get("score", "?")
-                        console.print(f"  [green]✓[/green] {dim_name}: score={score}")
+                        icon = "✓" if result.get("error") is None else "✗"
+                        color = "green" if result.get("error") is None else "red"
+                        console.print(f"  [{color}]{icon}[/{color}] {dim_name}: score={score}")
                     except Exception as e:
                         results[dim] = {
                             "dimension": dim, "name": dim_name,
@@ -193,7 +185,7 @@ class Reviewer:
         else:
             for dim in dimensions:
                 dim_name = REVIEW_PROMPTS[dim][0]
-                result = _run_single_review(self.client, self.model, dim, paper_content)
+                result = _run_single_review(self.llm, self.model, dim, paper_content)
                 results[dim] = result
                 score = result.get("score", "?")
                 icon = "✓" if result.get("error") is None else "✗"
@@ -235,7 +227,6 @@ class Reviewer:
             if detailed:
                 sections.append(f"\n### 详细反馈 Detailed Feedback\n{detailed}")
 
-            # Include specific fixes if present
             specific_fixes = parsed.get("specific_fixes", [])
             if specific_fixes:
                 sections.append("\n### 具体修改建议 Specific Fixes\n")
@@ -245,7 +236,6 @@ class Reviewer:
                     sug = fix.get("fix", fix.get("suggestion", fix.get("suggested", "?")))
                     sections.append(f"- **{loc}**: {issue} → {sug}")
 
-            # Include AI pattern details
             if dim_key == "ai_free":
                 detected = parsed.get("detected_patterns", [])
                 if detected:

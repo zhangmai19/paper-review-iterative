@@ -1,4 +1,4 @@
-"""Utility functions: logging, Rich console, helpers."""
+"""Utility functions: logging, Rich console, LLM client, helpers."""
 
 import os
 import sys
@@ -54,22 +54,74 @@ def load_config(config_path: str = "config.yaml") -> dict:
 def create_llm_client(config: dict):
     """Create an LLM client based on provider config.
 
-    For DeepSeek, uses Anthropic SDK with custom base_url
-    (DeepSeek supports Anthropic-compatible API).
-    For Anthropic, uses standard Anthropic SDK.
+    Returns (provider_type, client) tuple.
+    - provider_type: "openai" or "anthropic"
+    - client: OpenAI or Anthropic client instance
+
+    For DeepSeek uses OpenAI SDK with native endpoint (avoids 10-min timeout
+    limitation of DeepSeek's Anthropic-compatible endpoint).
+    For Anthropic uses standard Anthropic SDK.
     """
     from anthropic import Anthropic
+    from openai import OpenAI
 
     provider = config.get("provider", "anthropic")
     api_key = config.get("api_key", "")
 
     if provider == "deepseek":
-        return Anthropic(
+        client = OpenAI(
             api_key=api_key,
-            base_url="https://api.deepseek.com/anthropic",
+            base_url="https://api.deepseek.com",
         )
+        return ("openai", client)
     else:
-        return Anthropic(api_key=api_key)
+        client = Anthropic(api_key=api_key)
+        return ("anthropic", client)
+
+
+def llm_chat(llm, model: str, system: str, user_message: str,
+             max_tokens: int = 4096, temperature: float = 0.3) -> str:
+    """Unified chat call — works with both Anthropic and OpenAI clients.
+
+    Args:
+        llm: (provider_type, client) tuple from create_llm_client()
+        model: Model name
+        system: System prompt
+        user_message: User message content
+        max_tokens: Max output tokens
+        temperature: Sampling temperature
+
+    Returns:
+        Text response string
+    """
+    provider_type, client = llm
+
+    if provider_type == "openai":
+        response = client.chat.completions.create(
+            model=model,
+            messages=[
+                {"role": "system", "content": system},
+                {"role": "user", "content": user_message},
+            ],
+            max_tokens=max_tokens,
+            temperature=temperature,
+        )
+        return response.choices[0].message.content or ""
+    else:
+        response = client.messages.create(
+            model=model,
+            max_tokens=max_tokens,
+            temperature=temperature,
+            system=system,
+            messages=[{"role": "user", "content": user_message}],
+        )
+        for block in response.content:
+            if hasattr(block, 'text') and block.type == 'text':
+                return block.text
+        for block in response.content:
+            if hasattr(block, 'text'):
+                return getattr(block, 'text', '')
+        return ""
 
 
 def print_banner():
@@ -83,7 +135,7 @@ def print_banner():
     console.print(banner)
 
 
-def print_review_summary(scores: dict, round_num: int):
+def print_review_summary(scores: dict, review_results: dict, round_num: int):
     """Print a formatted review summary table."""
     dim_names = {
         "format": "格式 Format",
@@ -100,14 +152,18 @@ def print_review_summary(scores: dict, round_num: int):
     table.add_column("等级", style="magenta", width=12)
     table.add_column("关键问题", style="red", width=40)
 
-    for dim, info in scores.items():
-        score = info.get("score", 1.0)
+    for dim_key, dim_name in dim_names.items():
+        score = scores.get(dim_key, 1.0) if isinstance(scores.get(dim_key), (int, float)) else scores.get(dim_key, {}).get("score", 1.0)
         level = _score_to_level(score)
-        issues = info.get("key_issues", [])
+        r = review_results.get(dim_key, {})
+        issues = r.get("key_issues", []) if isinstance(r, dict) else []
         issues_str = "; ".join(issues[:2]) if issues else "—"
-        table.add_row(dim_names.get(dim, dim), f"{score:.2f}", level, issues_str)
+        table.add_row(dim_name, f"{score:.2f}", level, issues_str)
 
-    avg = sum(v.get("score", 1.0) for v in scores.values()) / max(len(scores), 1)
+    avg = sum(
+        v if isinstance(v, (int, float)) else v.get("score", 1.0)
+        for v in scores.values()
+    ) / max(len(scores), 1)
     table.add_row("", "", "", "")
     table.add_row("[bold]综合平均[/bold]", f"[bold]{avg:.2f}[/bold]", _score_to_level(avg), "")
 

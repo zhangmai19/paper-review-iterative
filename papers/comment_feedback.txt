@@ -1,0 +1,158 @@
+
+Please do the following:
+
+- First, clearly restate each issue.
+- Then revise the corresponding part of the paper.
+- If additional information is required to complete a revision, do NOT fabricate content. Instead:
+  - Explain what information is missing,
+  - Specify what literature or material I should consult,
+  - Suggest concrete steps for how to revise.
+
+Here are the issues:
+
+---
+
+### 1. Abstract
+The abstract is too short. It needs to be expanded to clearly describe:
+- The research question,
+- The model setup,
+- The main theoretical findings,
+- The intuition behind the results,
+- The implications.
+
+Please rewrite it into a well-structured, professional abstract suitable for a top-field journal.
+
+---
+
+### 2. Introduction – Literature Review Style
+Currently, multiple papers are grouped together in single parentheses when introducing the literature. This should be avoided.
+
+Please:
+- Rewrite the literature review so that contributions are introduced more clearly and individually.
+- Improve logical transitions across research streams.
+
+---
+
+### 3. Introduction – Contribution Paragraph
+Add a second-to-last paragraph in the introduction that clearly states:
+- The main contributions,
+- The novelty relative to existing literature,
+- Why the results matter.
+
+Make it concise but strong.
+
+---
+
+### 4. Terminology: Risk Heterogeneity
+We currently use the phrase “two types of agents,” which is imprecise.
+
+The intended meaning is that agents differ in their risk characteristics.
+
+Please:
+- Suggest academically appropriate terminology,
+- Revise the relevant parts accordingly.
+
+---
+
+### 5. Model Setup – Group Indexing
+Instead of using a classification function \(\tau(i)\), we may define:
+
+\[
+N_H = \{1,\dots,n_H\}, \quad 
+N_L = \{n_H+1,\dots,n_H+n_L\}.
+\]
+
+Then use \(i \in N_H\) or \(i \in N_L\) directly.
+
+Please:
+- Evaluate whether this improves clarity,
+- Revise the model setup accordingly if appropriate,
+- Ensure notation consistency throughout.
+
+---
+
+### 6. Section 2.2 – Problem Formulation
+The problem description is too vague.
+
+Please:
+- Rewrite it with precise mathematical language,
+- Ensure that the general optimization problem appears clearly at the end of the section,
+- Improve logical structure.
+
+---
+
+### 7. Mean–Variance Utility Justification
+Using mean–variance utility may be criticized by referees.
+
+Please:
+- Add a paragraph justifying its use,
+- Explain its prevalence in both academic and practical settings,
+- Discuss possible extensions to expected utility or risk measures,
+- Argue why the qualitative results would likely remain robust.
+
+---
+
+### 8. Appendix References
+Replace vague references such as “see Appendix B” with precise statements like:
+“Proposition 4.5 in Appendix B shows that…”
+
+Please revise all appendix references accordingly.
+
+---
+
+### 9. Section on Correlated Risks
+The section on correlated risks does not generate substantial additional insight.
+
+Please:
+- Integrate its results into the general case section,
+- Remove it as a standalone section,
+- Ensure structural coherence.
+
+---
+
+### 10. Section 6.2 Structure
+Remove artificial-looking subheadings such as “Mean component” and “Variance component.”
+Rewrite the section into a more natural and integrated discussion.
+
+---
+
+### 11. Proposition Tagging
+Remove unnecessary special tags such as \(\tag{\star}\).
+Ensure consistent equation and proposition numbering throughout the paper.
+
+---
+
+### 12. Corollary 6.2
+Clarify explicitly:
+Corollary 6.2 is a corollary of which proposition or theorem?
+
+Revise the logical exposition accordingly.
+
+---
+
+### 13. Numerical Section
+The numerical section requires graphical redesign.
+
+Please:
+- Suggest principles for improving figure design,
+- Explain how to better highlight economic insights,
+- Ensure consistency in figure size and layout.
+
+---
+
+### 14. Conclusion
+The conclusion is too long.
+
+Please:
+- Shorten it,
+- Retain only strong and positive conclusions,
+- Emphasize the paper’s key contributions and insights.
+
+---
+
+When responding:
+- Work systematically.
+- Be rigorous.
+- Maintain top-journal academic tone.
+- Avoid generic writing.
+- Preserve mathematical precision.

@@ -186,8 +186,8 @@ def main(
             return _get_human_feedback(round_num, review_info)
         return None
 
-    # --- Initialize client ---
-    client = create_llm_client(config)
+    # --- Initialize LLM client ---
+    llm = create_llm_client(config)
 
     # --- Run orchestrator ---
     print_banner()
@@ -196,7 +196,7 @@ def main(
 
     try:
         orchestrator = Orchestrator(
-            client=client,
+            llm=llm,
             model=final_model,
             max_rounds=final_max_rounds,
             convergence_threshold=final_threshold,
